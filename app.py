@@ -90,6 +90,7 @@ def simulate_compartment_data(state, params, precomputed, schedules, T, tpd, com
     with torch.no_grad():
         if compartment == 'Hospital Admissions':
             # Special case for hospital admissions
+            # Returns shape: (T, L, A, R)
             admits = flu.torch_simulate_hospital_admits(state, params, precomputed, schedules, T, tpd)
             return admits.cpu().numpy()
         else:
@@ -100,6 +101,8 @@ def simulate_compartment_data(state, params, precomputed, schedules, T, tpd, com
             
             # Get the compartment data and convert to numpy
             # state_history_dict[compartment] is a list of tensors (one per day)
+            # Each tensor is shape (L, A, R)
+            # Stack to get shape (T, L, A, R)
             compartment_data = torch.stack(state_history_dict[compartment])
             return compartment_data.cpu().numpy()
 
@@ -401,8 +404,9 @@ with col_right:
             xs = np.arange(T)
             
             for series in series_with_data:
-                # Aggregate over L, A, R
-                y_agg = np.sum(series['data'], axis=(0, 1, 2))
+                # Data shape is (T, L, A, R)
+                # Aggregate over L, A, R to get shape (T,)
+                y_agg = np.sum(series['data'], axis=(1, 2, 3))
                 ax.plot(xs, y_agg, label=series['name'], color=series['color'], linewidth=2)
             
             ax.set_xlabel("Time (days)")
@@ -419,8 +423,9 @@ with col_right:
             
             for loc in range(L):
                 for series in series_with_data:
-                    # Aggregate over A, R
-                    y_loc = np.sum(series['data'][loc, :, :, :], axis=(0, 1))
+                    # Data shape is (T, L, A, R)
+                    # Aggregate over A, R for each location to get shape (T,)
+                    y_loc = np.sum(series['data'][:, loc, :, :], axis=(1, 2))
                     axes[loc].plot(xs, y_loc, label=series['name'], color=series['color'], linewidth=2)
                 
                 axes[loc].set_xlabel("Time (days)")
@@ -443,8 +448,9 @@ with col_right:
                     ax = fig_plot.add_subplot(gs[loc, age])
                     
                     for series in series_with_data:
-                        # Aggregate over R only
-                        y_loc_age = np.sum(series['data'][loc, age, :, :], axis=0)
+                        # Data shape is (T, L, A, R)
+                        # Aggregate over R only to get shape (T,)
+                        y_loc_age = np.sum(series['data'][:, loc, age, :], axis=1)
                         ax.plot(xs, y_loc_age, label=series['name'], color=series['color'], linewidth=1.5)
                     
                     ax.set_xlabel("Time (days)", fontsize=8)
