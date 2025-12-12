@@ -13,40 +13,35 @@ st.set_page_config(page_title="Metapop Admissions Explorer", layout="wide")
 # Custom CSS for independent scrolling columns
 st.markdown("""
 <style>
-    /* Fix main container */
-    .main .block-container {
-        max-height: 100vh;
-        padding-top: 2rem;
-        padding-bottom: 0;
+    /* Reduce padding on main container */
+    section.main > div {
+        padding-bottom: 1rem;
+        padding-top: 1rem;
     }
     
-    /* Hide default streamlit elements that cause scrolling */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    /* Make columns scrollable */
-    [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
-        height: calc(100vh - 4rem);
+    /* Make each column independently scrollable */
+    [data-testid="column"] > div > div > div > div {
         overflow-y: auto;
-        overflow-x: hidden;
+        height: 95vh;
+        padding-right: 10px;
     }
     
-    /* Scrollbar styling */
-    [data-testid="stVerticalBlock"]::-webkit-scrollbar {
+    /* Custom scrollbar styling */
+    [data-testid="column"] > div > div > div > div::-webkit-scrollbar {
         width: 10px;
     }
     
-    [data-testid="stVerticalBlock"]::-webkit-scrollbar-track {
+    [data-testid="column"] > div > div > div > div::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 5px;
     }
     
-    [data-testid="stVerticalBlock"]::-webkit-scrollbar-thumb {
+    [data-testid="column"] > div > div > div > div::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 5px;
     }
     
-    [data-testid="stVerticalBlock"]::-webkit-scrollbar-thumb:hover {
+    [data-testid="column"] > div > div > div > div::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
 </style>
