@@ -1,0 +1,6 @@
+streamlit==1.16.0
+torch==2.9.0
+numpy==1.23.0
+matplotlib==3.5.0
+pandas==1.4.2
+uuid==1.30
