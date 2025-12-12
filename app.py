@@ -10,6 +10,48 @@ import uuid
 
 st.set_page_config(page_title="Metapop Admissions Explorer", layout="wide")
 
+# Custom CSS for independent scrolling columns
+st.markdown("""
+<style>
+    /* Fix main container */
+    .main .block-container {
+        max-height: 100vh;
+        padding-top: 2rem;
+        padding-bottom: 0;
+    }
+    
+    /* Hide default streamlit elements that cause scrolling */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* Make columns scrollable */
+    [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
+        height: calc(100vh - 4rem);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* Scrollbar styling */
+    [data-testid="stVerticalBlock"]::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    [data-testid="stVerticalBlock"]::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+    
+    [data-testid="stVerticalBlock"]::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+    
+    [data-testid="stVerticalBlock"]::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # ----- Torch guard -----
 try:
     import torch
