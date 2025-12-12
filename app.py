@@ -85,15 +85,23 @@ def apply_prob_multiplier_clip01(p, field_name, mult):
     new_val = new_val.to(like.dtype)
     setattr(p, field_name, new_val)
 
-def extract_compartment_data(state, params, precomputed, schedules, T, tpd, compartment):
-    """Extract time series for a specific compartment from simulation."""
+def simulate_compartment_data(state, params, precomputed, schedules, T, tpd, compartment):
+    """Simulate and extract time series for a specific compartment."""
     with torch.no_grad():
-        # Run full simulation
-        all_states = flu.torch_simulate_full_trajectory(state, params, precomputed, schedules, T, tpd)
-        
-        # Extract the specific compartment
-        compartment_tensor = getattr(all_states, compartment)
-        return compartment_tensor.cpu().numpy()
+        if compartment == 'Hospital Admissions':
+            # Special case for hospital admissions
+            admits = flu.torch_simulate_hospital_admits(state, params, precomputed, schedules, T, tpd)
+            return admits.cpu().numpy()
+        else:
+            # For all other compartments, use full history simulation
+            state_history_dict, _ = flu.torch_simulate_full_history(
+                state, params, precomputed, schedules, T, tpd
+            )
+            
+            # Get the compartment data and convert to numpy
+            # state_history_dict[compartment] is a list of tensors (one per day)
+            compartment_data = torch.stack(state_history_dict[compartment])
+            return compartment_data.cpu().numpy()
 
 # ===== Load model inputs =====
 @st.cache_resource(show_spinner=True)
@@ -176,7 +184,7 @@ COLOR_PALETTE = [
 ]
 
 # ===== Available compartments =====
-COMPARTMENTS = ['S', 'E', 'IP', 'ISR', 'ISH', 'IA', 'HR', 'HD', 'R', 'D', 'M', 'MV']
+COMPARTMENTS = ['S', 'E', 'IP', 'ISR', 'ISH', 'IA', 'HR', 'HD', 'R', 'D', 'M', 'MV', 'Hospital Admissions']
 
 # ===== Layout =====
 col_left, col_right = st.columns([1, 2])
@@ -188,7 +196,7 @@ with col_left:
     if st.button("➕ Create New Figure", use_container_width=True):
         new_fig = {
             'id': str(uuid.uuid4()),
-            'metric': 'ISH',
+            'metric': 'S',
             'view': 'Aggregate',
             'series': [],
             'advanced': {
@@ -304,7 +312,7 @@ with col_left:
                             apply_prob_multiplier_clip01(p, "vax_induced_death_risk_reduce", adv['m_vax_death'])
                             
                             # Extract compartment data
-                            data = extract_compartment_data(
+                            data = simulate_compartment_data(
                                 base_state, p, base_precomputed, base_schedules, T, timesteps_per_day, fig['metric']
                             )
                             series['data'] = data
